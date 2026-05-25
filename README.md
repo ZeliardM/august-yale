@@ -383,6 +383,20 @@ Set alarm system state. `armState` can be 'arm_away', 'arm_stay', or 'disarm'. `
 
 Retrieve PIN codes configured for a lock.
 
+#### `addPin(lockId, pin, [options])` → `object`
+
+Add a keypad PIN to a lock. August creates an entry-code-only user with a generated PIN first, then the API loads that credential, syncs it to the lock, updates it to the requested PIN, syncs again, and verifies the requested PIN is present. By default, generated users are named `AccessCode User1`, `AccessCode User2`, and so on by reading existing PIN records; pass `options.firstName` and `options.lastName` to override that. If the requested PIN is not loaded after sync, the API sends the app-style commit/update step and verifies again.
+
+PIN write failures reject with `PinOperationError`, including `operation`, `step`, `lockId`, and any August `statusCode`/`body` from the underlying request.
+
+#### `modifyPin(lockId, oldPin, newPin)` → `object`
+
+Modify an existing keypad PIN by finding the current PIN's user and slot, then running the app-style update, sync, and commit flow.
+
+#### `deletePin(lockId, pin)` → `object`
+
+Delete an existing keypad PIN by finding the current PIN's user and slot, then running the app-style delete, sync, and commit flow. This does not call `DELETE /locks/{lockID}/pins`.
+
 #### `capabilities(serialNumber)` → `object`
 
 Retrieve device capabilities for a specific device serial number.

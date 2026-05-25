@@ -64,6 +64,50 @@ export class BridgeError extends YaleApiError {
 }
 
 /**
+ * PIN/access-code operation failure.
+ *
+ * Multi-step PIN writes can fail at different points: creating the
+ * unverified user, loading a generated credential, syncing to the lock,
+ * committing an update/delete, or verifying the final state. This error
+ * gives consumers a stable operation/step pair while preserving August's
+ * original HTTP statusCode/body when available.
+ */
+export class PinOperationError extends YaleApiError {
+  public body?: unknown
+  public lockId: string
+  public operation: string
+  public rollback?: unknown
+  public statusCode?: number
+  public step: string
+
+  constructor(
+    operation: string,
+    step: string,
+    lockId: string,
+    originalError?: Error & { body?: unknown, statusCode?: number | string },
+  ) {
+    super(`${operation} failed during ${step}: ${originalError?.message ?? 'Unknown error'}`, originalError)
+    this.name = 'PinOperationError'
+    this.operation = operation
+    this.step = step
+    this.lockId = lockId
+    this.body = originalError?.body
+
+    if (originalError?.statusCode !== undefined) {
+      this.statusCode = Number(originalError.statusCode)
+    }
+
+    if (originalError) {
+      ;(this as any).cause = originalError
+    }
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, PinOperationError)
+    }
+  }
+}
+
+/**
  * Network / transport-level failure.
  *
  * Thrown when a request did not get a clean answer from the server: TCP

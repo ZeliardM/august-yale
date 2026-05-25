@@ -38,6 +38,11 @@ describe('august', () => {
     expect(typeof August.locks).toBe('function')
     expect(typeof August.lock).toBe('function')
     expect(typeof August.unlock).toBe('function')
+    expect(typeof August.addPin).toBe('function')
+    expect(typeof August.addPins).toBe('function')
+    expect(typeof August.modifyPin).toBe('function')
+    expect(typeof August.deletePin).toBe('function')
+    expect(typeof August.pinStates).toBe('function')
   })
 
   it('should use default timeout of 30000ms', () => {
@@ -168,6 +173,25 @@ describe('august', () => {
     const callArgs = mockFetch.mock.calls[0][1]
     expect(callArgs.dispatcher).toBeDefined()
     expect(callArgs.dispatcher).not.toBe(undefined)
+  })
+
+  it('should allow per-request Accept-Version overrides', async () => {
+    const august = new August(mockConfig)
+
+    mockFetch
+      .mockResolvedValueOnce(
+        new Response('{}', {
+          status: 200,
+          headers: { 'x-august-access-token': 'test-token-123' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response('{}', { status: 200 }),
+      )
+
+    await august.post('/unverifiedusers', { deviceID: 'lock-1' }, '2.0.0')
+
+    expect(mockFetch.mock.calls[1][1].headers['Accept-Version']).toBe('2.0.0')
   })
 
   describe('resetTransport', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { AbortedError, BridgeError, InvalidAuth, NetworkError, RateLimitError, TimeoutError, YaleApiError } from './exceptions.js'
+import { AbortedError, BridgeError, InvalidAuth, NetworkError, PinOperationError, RateLimitError, TimeoutError, YaleApiError } from './exceptions.js'
 
 describe('exceptions', () => {
   it('should create YaleApiError correctly', () => {
@@ -36,6 +36,27 @@ describe('exceptions', () => {
     expect(error).toBeInstanceOf(BridgeError)
     expect(error.message).toBe('Bridge offline')
     expect(error.name).toBe('BridgeError')
+  })
+
+  it('should create PinOperationError with operation context', () => {
+    const originalError = Object.assign(new Error('Bad Request'), {
+      body: { code: 'InvalidArgument' },
+      statusCode: 400,
+    })
+    const error = new PinOperationError('addPin', 'create-user', 'lock-1', originalError)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(YaleApiError)
+    expect(error).toBeInstanceOf(PinOperationError)
+    expect(error.name).toBe('PinOperationError')
+    expect(error.message).toBe('addPin failed during create-user: Bad Request')
+    expect(error.operation).toBe('addPin')
+    expect(error.step).toBe('create-user')
+    expect(error.lockId).toBe('lock-1')
+    expect(error.statusCode).toBe(400)
+    expect(error.body).toEqual({ code: 'InvalidArgument' })
+    expect(error.originalError).toBe(originalError)
+    expect((error as any).cause).toBe(originalError)
   })
 
   it('should create TimeoutError correctly', () => {

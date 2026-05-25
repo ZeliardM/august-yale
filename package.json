@@ -1,7 +1,7 @@
 {
   "name": "august-yale",
   "type": "module",
-  "version": "1.2.2",
+  "version": "2.0.0",
   "description": "API module for interacting with and receiving events from August smart locks",
   "author": {
     "name": "donavanbecker",
@@ -43,7 +43,7 @@
     "check": "npm install && npm outdated",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "build": "rm -rf dist && tsc",
+    "build": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\" && tsc",
     "prepublishOnly": "npm run lint && npm run build && npm run docs && npm run docs:lint",
     "postpublish": "rm -rf dist && npm ci",
     "test": "vitest run",

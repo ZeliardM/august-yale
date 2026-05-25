@@ -39,6 +39,9 @@ The following endpoints are implemented in this package:
 - GET /locks/{lockID} - `details()`
 - GET /locks/{lockID}/status - `status()`
 - GET /locks/{lockID}/pins - `pins()`
+- POST /unverifiedusers - `addPin()`
+- PUT /locks/{lockID}/users/{userID}/credentials - `addPin()`, `modifyPin()`, `deletePin()`
+- PUT /locks/{lockID}/pins/sync - `addPin()`, `modifyPin()`, `deletePin()`
 - PUT /remoteoperate/{lockID}/lock - `lock()`
 - PUT /remoteoperate/{lockID}/unlock - `unlock()`
 - PUT /remoteoperate/{lockID}/unlatch - `unlatch()`
@@ -149,6 +152,7 @@ The following endpoints are implemented in this package:
 | GET    | /locks/log/before/{lockID}/{dateTimeInMs}/{count}           | OK     |
 | GET    | /locks/notifications/{lockID}/{otherUserID}                 |
 | GET    | ~~/locks/rules/{lockID}~~                                   | 405    |
+| POST   | /unverifiedusers                                            | OK     |
 | PUT    | /locks/getlockrands/{lockID}                                |
 | PUT    | /locks/{lockID}                                             | OK     | LockName (et al) |
 | PUT    | /locks/adduser/{lockID}/{otherUserId}/{type}                |
@@ -158,6 +162,8 @@ The following endpoints are implemented in this package:
 | PUT    | /locks/{lockID}/offlinekeys/{action}                        |
 | PUT    | /locks/acknowledgeparamupdate/{lockID}                      |
 | PUT    | /locks/initiatecomm/{lockID}                                |
+| PUT    | /locks/{lockID}/users/{userID}/credentials                  | OK     |
+| PUT    | /locks/{lockID}/pins/sync                                   | OK     |
 | PUT    | /locks/{lockID}/users/{userID}/pin                          |
 | DELETE | /locks/{lockID}                                             |
 | DELETE | /locks/{lockID}/pins                                        |

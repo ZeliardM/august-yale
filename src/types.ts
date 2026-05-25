@@ -73,6 +73,7 @@ export interface AugustLockDetails {
   SerialNumber: string
   LockStatus: LockStatus
   currentFirmwareVersion: string
+  keypad?: AugustKeypadDetails
   homeKitEnabled: boolean
   zWaveEnabled: boolean
   isGalileo: boolean
@@ -84,6 +85,16 @@ export interface AugustLockDetails {
   ruleHash: object
   cameras: any[]
   geofenceLimits: geofenceLimits
+}
+
+export interface AugustKeypadDetails {
+  _id: string
+  serialNumber: string
+  lockID: string
+  currentFirmwareVersion?: string
+  battery?: Record<string, unknown>
+  batteryLevel?: 'Full' | 'Medium' | 'Low' | 'Very Low' | string
+  batteryRaw?: number
 }
 
 export interface batteryInfo {

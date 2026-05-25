@@ -1,5 +1,6 @@
 import type { Response as UndiciResponse } from 'undici'
 
+import type { AddPinOptions, PinOperationResult } from './methods/pins.js'
 import type { Brand } from './settings.js'
 import type { config } from './types.js'
 
@@ -19,7 +20,7 @@ import doorbells, { doorbellDetails, wakeupDoorbell } from './methods/doorbells.
 import houses, { houseActivities, houseDetails, houseTemperature } from './methods/houses.js'
 import lockUnlock from './methods/lock-unlock.js'
 import locks from './methods/locks.js'
-import pins from './methods/pins.js'
+import pins, { addPin, addPins, deletePin, modifyPin, pinStates } from './methods/pins.js'
 import status from './methods/status.js'
 import subscribe, { onPubNubStatus, tearDownPubNub } from './methods/subscribe.js'
 import unlatch from './methods/unlatch.js'
@@ -32,7 +33,7 @@ import session from './util/session.js'
 import setup from './util/setup.js'
 
 // Export exceptions for external use
-export { AbortedError, BridgeError, InvalidAuth, NetworkError, RateLimitError, TimeoutError, YaleApiError } from './exceptions.js'
+export { AbortedError, BridgeError, InvalidAuth, NetworkError, PinOperationError, RateLimitError, TimeoutError, YaleApiError } from './exceptions.js'
 export { Brand } from './settings.js'
 
 interface FetchOptions {
@@ -197,12 +198,16 @@ class August {
   }
 
   /* --------------------------------- Session -------------------------------- */
-  async #start(method: any, url: any, data: any) {
+  async #start(method: any, url: any, data: any, acceptVersion?: string) {
     // Start or continue a session
     const headers: { [key: string]: any } = await session.call(this)
 
     if (!this.token) {
       throw new Error('Session not started')
+    }
+
+    if (acceptVersion) {
+      headers['Accept-Version'] = acceptVersion
     }
 
     if (!data) {
@@ -212,20 +217,20 @@ class August {
     return this.fetch({ method, url, headers, data })
   }
 
-  async get(endpoint: any) {
-    return this.#start('get', endpoint, null)
+  async get(endpoint: any, acceptVersion?: string) {
+    return this.#start('get', endpoint, null, acceptVersion)
   }
 
-  async post(endpoint: any, data: any) {
-    return this.#start('post', endpoint, data)
+  async post(endpoint: any, data: any, acceptVersion?: string) {
+    return this.#start('post', endpoint, data, acceptVersion)
   }
 
-  async put(endpoint: any, data: any) {
-    return this.#start('put', endpoint, data)
+  async put(endpoint: any, data: any, acceptVersion?: string) {
+    return this.#start('put', endpoint, data, acceptVersion)
   }
 
-  async delete(endpoint: any) {
-    return this.#start('delete', endpoint, null)
+  async delete(endpoint: any, acceptVersion?: string) {
+    return this.#start('delete', endpoint, null, acceptVersion)
   }
 
   end() {
@@ -435,12 +440,52 @@ class August {
   }
 
   /* ------------------------------ Other methods ---------------------------- */
+  async addPin(lockId: string, pin: string, options?: AddPinOptions): Promise<PinOperationResult> {
+    return addPin.call(this, false, lockId, pin, options)
+  }
+
+  async _addPin(lockId: string, pin: string, options?: AddPinOptions): Promise<PinOperationResult> {
+    return addPin.call(this, true, lockId, pin, options)
+  }
+
+  async addPins(lockId: string, pins: string[], options?: AddPinOptions): Promise<PinOperationResult[]> {
+    return addPins.call(this, false, lockId, pins, options)
+  }
+
+  async _addPins(lockId: string, pins: string[], options?: AddPinOptions): Promise<PinOperationResult[]> {
+    return addPins.call(this, true, lockId, pins, options)
+  }
+
+  async modifyPin(lockId: string, oldPin: string, newPin: string): Promise<PinOperationResult> {
+    return modifyPin.call(this, false, lockId, oldPin, newPin)
+  }
+
+  async _modifyPin(lockId: string, oldPin: string, newPin: string): Promise<PinOperationResult> {
+    return modifyPin.call(this, true, lockId, oldPin, newPin)
+  }
+
+  async deletePin(lockId: string, pin: string): Promise<PinOperationResult> {
+    return deletePin.call(this, false, lockId, pin)
+  }
+
+  async _deletePin(lockId: string, pin: string): Promise<PinOperationResult> {
+    return deletePin.call(this, true, lockId, pin)
+  }
+
   async pins(lockId: string) {
     return pins.call(this, false, lockId)
   }
 
+  async pinStates(lockId: string) {
+    return pinStates.call(this, false, lockId)
+  }
+
   async _pins(lockId: string) {
     return pins.call(this, true, lockId)
+  }
+
+  async _pinStates(lockId: string) {
+    return pinStates.call(this, true, lockId)
   }
 
   async capabilities(serialNumber: string) {
@@ -623,8 +668,28 @@ class August {
   }
 
   // Other methods
+  static async addPin(config: config, lockId: string, pin: string, options?: AddPinOptions): Promise<PinOperationResult> {
+    return new August(config).addPin(lockId, pin, options)
+  }
+
+  static async addPins(config: config, lockId: string, pins: string[], options?: AddPinOptions): Promise<PinOperationResult[]> {
+    return new August(config).addPins(lockId, pins, options)
+  }
+
+  static async modifyPin(config: config, lockId: string, oldPin: string, newPin: string): Promise<PinOperationResult> {
+    return new August(config).modifyPin(lockId, oldPin, newPin)
+  }
+
+  static async deletePin(config: config, lockId: string, pin: string): Promise<PinOperationResult> {
+    return new August(config).deletePin(lockId, pin)
+  }
+
   static async pins(config: config, lockId: string) {
     return new August(config).pins(lockId)
+  }
+
+  static async pinStates(config: config, lockId: string) {
+    return new August(config).pinStates(lockId)
   }
 
   static async capabilities(config: config, serialNumber: string) {
